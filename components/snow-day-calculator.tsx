@@ -3,22 +3,16 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Snowflake, ThermometerSnowflake, Wind } from "lucide-react"
+import { AlertCircle, Snowflake, ThermometerSnowflake, Wind } from "lucide-react"
 
-import { calculateSnowDayProbability } from "@/lib/snow-day-calculator"
+import { calculateSnowDayProbability } from "@/app/actions/weather"
+import type { SnowDayResult } from "@/app/actions/weather"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-
-interface SnowDayResult {
-  probability: number
-  temperature: number
-  snowfall: number
-  windSpeed: number
-  message: string
-}
 
 export function SnowDayCalculator() {
   const [postalCode, setPostalCode] = useState("")
@@ -36,14 +30,18 @@ export function SnowDayCalculator() {
 
     setIsLoading(true)
     setError("")
+    setResult(null)
 
     try {
-      // In a real app, this would be an API call to a weather service
-      // For demo purposes, we're using a simulated function
       const data = await calculateSnowDayProbability(postalCode)
       setResult(data)
     } catch (err) {
-      setError("Unable to calculate snow day probability. Please try again.")
+      console.error("Error:", err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to calculate snow day probability. Please try again with a valid postal code.",
+      )
     } finally {
       setIsLoading(false)
     }
@@ -64,12 +62,11 @@ export function SnowDayCalculator() {
               <Label htmlFor="postalCode">Postal Code</Label>
               <Input
                 id="postalCode"
-                placeholder="Enter postal code"
+                placeholder="Enter postal code (e.g., 10001 or M5V 2H1)"
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
                 className="border-blue-200 focus-visible:ring-blue-500 dark:border-blue-800"
               />
-              {error && <p className="text-sm text-red-500">{error}</p>}
             </div>
             <Button
               type="submit"
@@ -82,11 +79,21 @@ export function SnowDayCalculator() {
         </CardContent>
       </Card>
 
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {result && (
         <Card className="border-2 border-blue-100 bg-white/80 shadow-lg backdrop-blur-sm dark:border-blue-900 dark:bg-slate-900/80">
           <CardHeader>
             <CardTitle className="text-center text-2xl text-blue-800 dark:text-blue-300">Snow Day Forecast</CardTitle>
-            <CardDescription className="text-center">Based on weather predictions for your area</CardDescription>
+            <CardDescription className="text-center">
+              For {result.location} - {result.conditions}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
@@ -111,7 +118,9 @@ export function SnowDayCalculator() {
                   <Snowflake className="h-6 w-6 text-blue-700 dark:text-blue-300" />
                 </div>
                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Snowfall</span>
-                <span className="text-lg font-bold text-slate-800 dark:text-white">{result.snowfall}" expected</span>
+                <span className="text-lg font-bold text-slate-800 dark:text-white">
+                  {result.snowfall > 0 ? `${result.snowfall}" expected` : "None expected"}
+                </span>
               </div>
 
               <div className="flex flex-col items-center space-y-2 text-center">
