@@ -1,5 +1,6 @@
 import { SnowDayCalculator } from "@/components/snow-day-calculator"
 import { SnowfallAnimation } from "@/components/snowfall-animation"
+import GPACalculator from "@/components/gpa-calculator";
 
 export default function Home() {
   return (
@@ -14,6 +15,17 @@ export default function Home() {
             <p className="text-lg text-slate-600 dark:text-slate-300">Find out if you'll have a snow day tomorrow!</p>
           </div>
           <SnowDayCalculator />
+
+          {/* GPA Calculator Section */}
+          <div className="mt-16">
+            <div className="mb-8 text-center">
+              <h2 className="mb-2 text-3xl font-bold tracking-tight text-slate-800 dark:text-white md:text-4xl">
+                GPA Calculator
+              </h2>
+              <p className="text-lg text-slate-600 dark:text-slate-300">Calculate your Grade Point Average.</p>
+            </div>
+            <GPACalculator />
+          </div>
         </div>
       </div>
     </main>
